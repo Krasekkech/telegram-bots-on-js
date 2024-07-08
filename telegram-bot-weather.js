@@ -68,8 +68,6 @@ module.exports.handler = async (event, context) =>{
     }
 
 
-
-
     const update = JSON.parse(event.body);
 
     const message = update.message;
@@ -78,24 +76,32 @@ module.exports.handler = async (event, context) =>{
     const chat_id = message.chat.id;
 
     if (message.text) {
-        const place = message.text;
-        const weather_data = await get_weather_info(place, WEATHER_TOKEN);
-        if(weather_data !== "Ошибка при получении информации о погоде"){
-            const weather_info = weather_data.weather[0].description.charAt(0).toUpperCase() + weather_data.weather[0].description.slice(1);
-            const temperature = weather_data.main.temp;
-            const temp_feel_like = weather_data.main.feels_like;
-            const pressure = weather_data.main.pressure;
-            const humidity = weather_data.main.humidity;
-            const visibility = weather_data.visibility;
-            const wind_speed = weather_data.wind.speed;
-            const wind_deg = weather_data.wind.deg;
+        if (message.text === "/start" || message.text === "/help"){
+            send_message("Я расскажу о текущей погоде для населенного пункта. \n \nЯ могу ответить на: \n- Текстовое сообщение с названием населенного пункта. \n- Голосовое сообщение с названием населенного пункта.\n - Сообщение с геопозицией.", chat_id, message_id);
+            return FUNCTION_ACCESS
+        }else {
+            const place = message.text;
+            const weather_data = await get_weather_info(place, WEATHER_TOKEN);
+            if(weather_data !== "Ошибка при получении информации о погоде"){
+                const weather_info = weather_data.weather[0].description.charAt(0).toUpperCase() + weather_data.weather[0].description.slice(1);
+                const temperature = weather_data.main.temp;
+                const temp_feel_like = weather_data.main.feels_like;
+                const pressure = weather_data.main.pressure;
+                const humidity = weather_data.main.humidity;
+                const visibility = weather_data.visibility;
+                const wind_speed = weather_data.wind.speed;
+                const wind_deg = weather_data.wind.deg;
 
-            const message = `${weather_info}. \nТемпература ${temperature} ℃, ощущается как ${temp_feel_like} ℃. \nАтмосферное давление ${pressure} мм рт. ст. \nВлажность ${humidity} %. \nВидимость ${visibility} метров. \nВетер ${wind_speed} м/с ${wind_deg}.`
+                const message = `${weather_info}. \nТемпература ${temperature} ℃, ощущается как ${temp_feel_like} ℃. \nАтмосферное давление ${pressure} мм рт. ст. \nВлажность ${humidity} %. \nВидимость ${visibility} метров. \nВетер ${wind_speed} м/с ${wind_deg}.`
 
-            send_message(message, chat_id, message_id);
-        } else {
-            send_message("Извините, не удалось получить информацию о погоде для данного места.", chat_id, message_id);
+                send_message(message, chat_id, message_id);
+            } else {
+                send_message("Извините, не удалось получить информацию о погоде для данного места.", chat_id, message_id);
+            }
+            return FUNCTION_ACCESS;
         }
+    }else{
+        send_message("Это голос.", chat_id, message_id);
         return FUNCTION_ACCESS;
     }
 
