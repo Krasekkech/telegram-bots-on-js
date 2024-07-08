@@ -1,29 +1,10 @@
-// module.exports.bot = async (event) => {
-//
-//     const body = JSON.parse(event.body);
-//
-//     const msg = {
-//         'method': 'sendMessage',
-//         'chat_id': body.message.chat.id,
-//         'text': body.message.text
-//     };
-//
-//     return {
-//         'statusCode': 200,
-//         'headers': {
-//             'Content-Type': 'application/json'
-//         },
-//         'body': JSON.stringify(msg),
-//         'isBase64Encoded': false
-//     };
-// };
 const FUNC_RESPONSE = {
     statusCode: 200,
     body: ''
 };
 
-
-const TELEGRAM_API_URL = "https://api.telegram.org/bot7063379967:AAFUSOjf-U1loFjcDkEXU66jcQ9kOel9TV8";
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 function send_message(text, message) {
     const message_id = message.message_id;
@@ -42,15 +23,18 @@ function send_message(text, message) {
         body: JSON.stringify(reply_message)
     }).then(response =>{
         if(response.ok){
-            console.log('Message sent!')
+            console.log('The Message has been sent!')
         }
     });
 }
 
-exports.handler = async (event, context) => {
+module.exports.handler = async (event, context) => {
+
+    if (!TELEGRAM_BOT_TOKEN) {
+        return FUNC_RESPONSE;
+    }
 
     const update = JSON.parse(event.body);
-
 
     if (!update.message) {
         return {
@@ -61,9 +45,15 @@ exports.handler = async (event, context) => {
 
     const message_in = update.message;
 
+    if (!message_in.text) {
+        send_message('Могу обработать только текстовое сообщение!', message_in);
+        return FUNC_RESPONSE;
+    }
+
     const echo_text = message_in.text.toUpperCase();
+
 
     send_message(echo_text, message_in);
 
-    return FUNC_RESPONSE;
+    return FUNC_RESPONSE
 };

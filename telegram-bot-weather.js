@@ -1,6 +1,6 @@
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const WEATHER_TOKEN = process.env.WEATHER_API_ID;
-const TELEGRAM_API_URL = "https://api.telegram.org/bot7132393270:AAEmLSZa2vr4zvABInWEmpjVNsZ9JScgOYk";
+const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 async function get_weather_info(place, token){
     const url = process.env.WEATHER_API_URL;
@@ -12,7 +12,7 @@ async function get_weather_info(place, token){
     }
 
     const queryString = new URLSearchParams(param).toString();
-    const requestUrl = url + "?" + queryString;
+    const requestUrl = `${url}?${queryString}`;
 
     try {
         const response = await fetch(requestUrl);
@@ -20,10 +20,11 @@ async function get_weather_info(place, token){
             return await response.json();
         } else {
             console.error("Ошибка HTTP: " + response.status);
+            return "Ошибка при получении информации о погоде";
         }
     } catch (error) {
-        console.error("Ошибка при получении температуры:", error);
-        return "Ошибка при получении температуры";
+        console.error("Ошибка при получении информации о погоде:", error);
+        return "Ошибка при получении информации о погоде";
     }
 
 }
@@ -55,7 +56,6 @@ function send_message(text, chat_id, message_id) {
     });
 }
 
-const weather_data = '';
 
 
 
@@ -80,8 +80,7 @@ module.exports.handler = async (event, context) =>{
     if (message.text) {
         const place = message.text;
         const weather_data = await get_weather_info(place, WEATHER_TOKEN);
-        if(weather_data !== "Ошибка при получении температуры"){
-            console.log(weather_data)
+        if(weather_data !== "Ошибка при получении информации о погоде"){
             const weather_info = weather_data.weather[0].description.charAt(0).toUpperCase() + weather_data.weather[0].description.slice(1);
             const temperature = weather_data.main.temp;
             const temp_feel_like = weather_data.main.feels_like;
@@ -91,7 +90,7 @@ module.exports.handler = async (event, context) =>{
             const wind_speed = weather_data.wind.speed;
             const wind_deg = weather_data.wind.deg;
 
-            const message = `${weather_info}. \n Температура ${temperature} ℃, ощущается как ${temp_feel_like} ℃. \n Атмосферное давление ${pressure} мм рт. ст. \n Влажность ${humidity} %. \n Видимость ${visibility} метров. \n Ветер ${wind_speed} м/с ${wind_deg}.`
+            const message = `${weather_info}. \nТемпература ${temperature} ℃, ощущается как ${temp_feel_like} ℃. \nАтмосферное давление ${pressure} мм рт. ст. \nВлажность ${humidity} %. \nВидимость ${visibility} метров. \nВетер ${wind_speed} м/с ${wind_deg}.`
 
             send_message(message, chat_id, message_id);
         } else {
